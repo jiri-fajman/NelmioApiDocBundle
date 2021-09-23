@@ -13,6 +13,7 @@ namespace Nelmio\ApiDocBundle\Model;
 
 use Nelmio\ApiDocBundle\Describer\ModelRegistryAwareInterface;
 use Nelmio\ApiDocBundle\ModelDescriber\ModelDescriberInterface;
+use Nelmio\ApiDocBundle\Model\Naming\ModelNamingStrategyInterface;
 use Nelmio\ApiDocBundle\OpenApiPhp\Util;
 use OpenApi\Annotations as OA;
 use Psr\Log\LoggerAwareTrait;
@@ -37,16 +38,20 @@ final class ModelRegistry
 
     private $api;
 
+    /** @var ModelNamingStrategyInterface  */
+    private $modelNamingStrategy;
+
     /**
      * @param ModelDescriberInterface[]|iterable $modelDescribers
      *
      * @internal
      */
-    public function __construct($modelDescribers, OA\OpenApi $api, array $alternativeNames = [])
+    public function __construct($modelDescribers, OA\OpenApi $api, ModelNamingStrategyInterface $modelNamingStrategy, array $alternativeNames = [])
     {
         $this->modelDescribers = $modelDescribers;
         $this->api = $api;
         $this->logger = new NullLogger();
+        $this->modelNamingStrategy = $modelNamingStrategy;
         foreach (array_reverse($alternativeNames) as $alternativeName => $criteria) {
             $this->alternativeNames[] = $model = new Model(new Type('object', false, $criteria['type']), $criteria['groups']);
             $this->names[$model->getHash()] = $alternativeName;
@@ -116,7 +121,7 @@ final class ModelRegistry
 
     private function generateModelName(Model $model): string
     {
-        $name = $base = $this->getTypeShortName($model->getType());
+        $name = $base = $this->getTypeName($model->getType());
         $names = array_column(
             $this->api->components instanceof OA\Components && is_array($this->api->components->schemas) ? $this->api->components->schemas : [],
             'schema'
@@ -156,16 +161,14 @@ final class ModelRegistry
         ];
     }
 
-    private function getTypeShortName(Type $type): string
+    private function getTypeName(Type $type): string
     {
         if (null !== $collectionType = $this->getCollectionValueType($type)) {
-            return $this->getTypeShortName($collectionType).'[]';
+            return $this->getTypeName($collectionType).'[]';
         }
 
         if (Type::BUILTIN_TYPE_OBJECT === $type->getBuiltinType()) {
-            $parts = explode('\\', $type->getClassName());
-
-            return end($parts);
+            return $this->modelNamingStrategy->getTypeName($type);
         }
 
         return $type->getBuiltinType();

@@ -13,6 +13,7 @@ namespace Nelmio\ApiDocBundle\Tests\Model;
 
 use Nelmio\ApiDocBundle\Model\Model;
 use Nelmio\ApiDocBundle\Model\ModelRegistry;
+use Nelmio\ApiDocBundle\Model\Naming\DiscardNamespaceModelNamingStrategy;
 use OpenApi\Annotations as OA;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -28,7 +29,7 @@ class ModelRegistryTest extends TestCase
                 'groups' => ['group1'],
             ],
         ];
-        $registry = new ModelRegistry([], new OA\OpenApi([]), $alternativeNames);
+        $registry = new ModelRegistry([], new OA\OpenApi([]), new DiscardNamespaceModelNamingStrategy(), $alternativeNames);
         $type = new Type(Type::BUILTIN_TYPE_ARRAY, false, null, true);
 
         $this->assertEquals('#/components/schemas/array', $registry->register(new Model($type, ['group1'])));
@@ -68,7 +69,7 @@ class ModelRegistryTest extends TestCase
                 ],
             ]);
 
-        $registry = new ModelRegistry([], new OA\OpenApi([]), []);
+        $registry = new ModelRegistry([], new OA\OpenApi([]), new DiscardNamespaceModelNamingStrategy(), []);
         $registry->setLogger($logger);
 
         $type = new Type(Type::BUILTIN_TYPE_OBJECT, false, self::class);
@@ -117,7 +118,7 @@ class ModelRegistryTest extends TestCase
                 ],
             ]);
 
-        $registry = new ModelRegistry([], new OA\OpenApi([]), $alternativeNames);
+        $registry = new ModelRegistry([], new OA\OpenApi([]), new DiscardNamespaceModelNamingStrategy(), $alternativeNames);
         $registry->setLogger($logger);
 
         $type = new Type(Type::BUILTIN_TYPE_OBJECT, false, self::class);
@@ -131,7 +132,7 @@ class ModelRegistryTest extends TestCase
      */
     public function testNameAliasingForObjects(string $expected, $groups, array $alternativeNames)
     {
-        $registry = new ModelRegistry([], new OA\OpenApi([]), $alternativeNames);
+        $registry = new ModelRegistry([], new OA\OpenApi([]), new DiscardNamespaceModelNamingStrategy(), $alternativeNames);
         $type = new Type(Type::BUILTIN_TYPE_OBJECT, false, self::class);
 
         $this->assertEquals($expected, $registry->register(new Model($type, $groups)));
@@ -201,7 +202,7 @@ class ModelRegistryTest extends TestCase
         $this->expectException('\LogicException');
         $this->expectExceptionMessage(sprintf('Schema of type "%s" can\'t be generated, no describer supports it.', $stringType));
 
-        $registry = new ModelRegistry([], new OA\OpenApi([]));
+        $registry = new ModelRegistry([], new OA\OpenApi([]), new DiscardNamespaceModelNamingStrategy());
         $registry->register(new Model($type));
         $registry->registerSchemas();
     }

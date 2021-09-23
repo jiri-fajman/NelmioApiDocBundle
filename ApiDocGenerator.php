@@ -14,6 +14,7 @@ namespace Nelmio\ApiDocBundle;
 use Nelmio\ApiDocBundle\Describer\DescriberInterface;
 use Nelmio\ApiDocBundle\Describer\ModelRegistryAwareInterface;
 use Nelmio\ApiDocBundle\Model\ModelRegistry;
+use Nelmio\ApiDocBundle\Model\Naming\ModelNamingStrategyInterface;
 use Nelmio\ApiDocBundle\ModelDescriber\ModelDescriberInterface;
 use Nelmio\ApiDocBundle\OpenApiPhp\DefaultOperationId;
 use Nelmio\ApiDocBundle\OpenApiPhp\ModelRegister;
@@ -36,6 +37,9 @@ final class ApiDocGenerator
     /** @var iterable|ModelDescriberInterface[] */
     private $modelDescribers;
 
+    /** @var ModelNamingStrategyInterface */
+    private $modelNamingStrategy;
+
     /** @var CacheItemPoolInterface|null */
     private $cacheItemPool;
 
@@ -52,10 +56,11 @@ final class ApiDocGenerator
      * @param DescriberInterface[]|iterable      $describers
      * @param ModelDescriberInterface[]|iterable $modelDescribers
      */
-    public function __construct($describers, $modelDescribers, CacheItemPoolInterface $cacheItemPool = null, string $cacheItemId = null)
+    public function __construct($describers, $modelDescribers, ModelNamingStrategyInterface $modelNamingStrategy, CacheItemPoolInterface $cacheItemPool = null, string $cacheItemId = null)
     {
         $this->describers = $describers;
         $this->modelDescribers = $modelDescribers;
+        $this->modelNamingStrategy = $modelNamingStrategy;
         $this->cacheItemPool = $cacheItemPool;
         $this->cacheItemId = $cacheItemId;
     }
@@ -84,7 +89,7 @@ final class ApiDocGenerator
         }
 
         $this->openApi = new OpenApi([]);
-        $modelRegistry = new ModelRegistry($this->modelDescribers, $this->openApi, $this->alternativeNames);
+        $modelRegistry = new ModelRegistry($this->modelDescribers, $this->openApi, $this->modelNamingStrategy, $this->alternativeNames);
         if (null !== $this->logger) {
             $modelRegistry->setLogger($this->logger);
         }

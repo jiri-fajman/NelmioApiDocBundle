@@ -75,6 +75,7 @@ final class NelmioApiDocExtension extends Extension implements PrependExtensionI
                 ->setArguments([
                     new TaggedIteratorArgument(sprintf('nelmio_api_doc.describer.%s', $area)),
                     new TaggedIteratorArgument('nelmio_api_doc.model_describer'),
+                    new Reference('nelmio_api_doc.model_naming_strategy'),
                 ]);
 
             $container->register(sprintf('nelmio_api_doc.describers.route.%s', $area), RouteDescriber::class)

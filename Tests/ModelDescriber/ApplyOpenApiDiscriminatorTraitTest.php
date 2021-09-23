@@ -13,6 +13,7 @@ namespace Nelmio\ApiDocBundle\Tests\ModelDescriber;
 
 use Nelmio\ApiDocBundle\Model\Model;
 use Nelmio\ApiDocBundle\Model\ModelRegistry;
+use Nelmio\ApiDocBundle\Model\Naming\DiscardNamespaceModelNamingStrategy;
 use Nelmio\ApiDocBundle\ModelDescriber\ApplyOpenApiDiscriminatorTrait;
 use OpenApi\Annotations as OA;
 use PHPUnit\Framework\TestCase;
@@ -73,7 +74,7 @@ class ApplyOpenApiDiscriminatorTraitTest extends TestCase
     {
         $this->schema = new OA\Schema([]);
         $this->model = $this->createModel(__CLASS__);
-        $this->modelRegistry = new ModelRegistry([], new OA\OpenApi([]));
+        $this->modelRegistry = new ModelRegistry([], new OA\OpenApi([]), new DiscardNamespaceModelNamingStrategy());
     }
 
     private function createModel(string $className): Model
